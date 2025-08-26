@@ -176,6 +176,127 @@
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>
+  <canvas id="starsCanvas" aria-hidden="true" style="position:fixed;inset:0;pointer-events:none;z-index:20;mix-blend-mode:screen;opacity:0.95"></canvas>
+
+  <script>
+    // Red falling stars animation — respects prefers-reduced-motion
+    (function(){
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if(prefersReduced) return; // do not animate for users who prefer reduced motion
+
+      const canvas = document.getElementById('starsCanvas');
+      const ctx = canvas.getContext('2d');
+      let DPR = Math.max(1, window.devicePixelRatio || 1);
+      let w = 0, h = 0;
+      let stars = [];
+      const STAR_COUNT = 36; // default star count — tweakable
+
+      function resize(){
+        DPR = Math.max(1, window.devicePixelRatio || 1);
+        w = Math.max(300, window.innerWidth);
+        h = Math.max(300, window.innerHeight);
+        canvas.width = Math.floor(w * DPR);
+        canvas.height = Math.floor(h * DPR);
+        canvas.style.width = w + 'px';
+        canvas.style.height = h + 'px';
+        ctx.setTransform(DPR,0,0,DPR,0,0);
+      }
+
+      function rand(min, max){ return Math.random()*(max-min)+min }
+
+      function initStars(){
+        stars = [];
+        for(let i=0;i<STAR_COUNT;i++){
+          const size = rand(1.6,5.2);
+          stars.push({
+            x: rand(0, w),
+            y: rand(-h, h),
+            vy: rand(30, 160) / 100, // vertical speed in px/frame-ish
+            vx: rand(-10, 10) / 100,
+            size: size,
+            twinkle: rand(0.02,0.12),
+            phase: Math.random()*Math.PI*2,
+            alpha: rand(0.6,1)
+          });
+        }
+      }
+
+      function draw(){
+        ctx.clearRect(0,0,w,h);
+        for(const s of stars){
+          s.phase += s.twinkle;
+          const a = Math.max(0.15, s.alpha * (0.6 + 0.4*Math.sin(s.phase)));
+          // glow
+          const g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.size*6);
+          g.addColorStop(0, `rgba(255,60,60,${0.14*a})`);
+          g.addColorStop(0.4, `rgba(255,40,40,${0.08*a})`);
+          g.addColorStop(1, `rgba(0,0,0,0)`);
+          ctx.fillStyle = g;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.size*6, 0, Math.PI*2);
+          ctx.fill();
+
+          // core
+          ctx.beginPath();
+          ctx.fillStyle = `rgba(255,40,40,${a})`;
+          ctx.arc(s.x, s.y, s.size, 0, Math.PI*2);
+          ctx.fill();
+
+          // update
+          s.y += s.vy * (DPR*0.7);
+          s.x += s.vx * (DPR*0.7);
+
+          // reset if out
+          if(s.y - s.size > h + 20){
+            s.y = rand(-80, -10);
+            s.x = rand(0, w);
+            s.vy = rand(30, 160) / 100;
+            s.size = rand(1.6,5.2);
+            s.alpha = rand(0.6,1);
+          }
+          if(s.x < -40 || s.x > w + 40){
+            s.x = (s.x < 0) ? rand(0, w) : rand(0, w);
+          }
+        }
+      }
+
+      let rafId = null;
+      function loop(){
+        draw();
+        rafId = requestAnimationFrame(loop);
+      }
+
+      function start(){
+        cancelAnimationFrame(rafId);
+        resize();
+        initStars();
+        loop();
+      }
+
+      // Visibility handling to save CPU
+      document.addEventListener('visibilitychange', ()=>{
+        if(document.hidden){ cancelAnimationFrame(rafId); rafId = null; }
+        else if(!rafId) loop();
+      });
+
+      // Resize handling
+      let resizeTimeout;
+      window.addEventListener('resize', ()=>{ clearTimeout(resizeTimeout); resizeTimeout = setTimeout(()=>{ resize(); initStars(); }, 120); });
+
+      // init
+      start();
+
+      // expose simple tuning via window for dev
+      window.__HeuksanStars = {
+        setCount(n){ if(Number.isFinite(n)){ stars.length = 0; for(let i=0;i<Math.max(0,n);i++) stars.push({x:rand(0,w), y:rand(-h,h), vy:rand(30,160)/100, vx:rand(-10,10)/100, size:rand(1.6,5.2), twinkle:rand(0.02,0.12), phase:Math.random()*Math.PI*2, alpha:rand(0.6,1)}); }
+        },
+        stop(){ cancelAnimationFrame(rafId); rafId = null; ctx.clearRect(0,0,w,h); }
+      };
+
+    })();
+  </script>
+
 </body>
 </html>
+
 
