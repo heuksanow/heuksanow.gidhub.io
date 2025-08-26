@@ -167,8 +167,16 @@
         <span style="color:var(--muted);">여기에 계정 상태가 표시됩니다. 실제 게임 로그인 정보(비밀번호, 인증코드 등)는 절대 붙여넣지 마세요.</span>
       </div>
 
-      <small style="opacity:.8">참고: 저는 외부 서비스(예: Blizzard)와 연결해 자동으로 계정 상태를 확인할 수 없습니다. 사이트에서 제공하는 버튼은 Blizzard의 공식 계정 페이지로 이동할 뿐입니다. 자동화/추적이 필요하면 Blizzard의 공식 API 또는 OAuth를 사용하는 서버 측 개발이 필요하며, 이를 진행하려면 별도의 서버·권한·보안 조치가 필요합니다.</small>
-    </section>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <label style="font-size:13px;opacity:.9">자동 갱신(웹훅/엔드포인트에서 상태 가져오기):</label>
+        <input id="webhookUrl" placeholder="https://your-server.example.com/status.json" style="flex:1;padding:10px;border-radius:10px;border:1px solid rgba(131,151,199,.08);background:transparent;color:var(--text)" />
+        <button class="cta" id="startWebhookBtn">시작</button>
+      </div>
+
+      <small style="opacity:.8">참고: Blizzard의 공개 API는 계정의 실시간 온라인/오프라인 상태를 제공하지 않습니다. 안전하고 합법적으로 '실제' 상태를 표시하려면 사용자가 자신의 계정으로 Battle.net에 로그인해 상태를 공개하는 별도의 서비스(예: 개인 서버가 상태를 보고하는 웹훅)를 구현해야 합니다. 아래는 두 가지 안전한 대안입니다.</small>
+
+      <ol style="margin:.6rem 0 0 1.2rem;color:var(--muted)">
+        <li>간단한 대안 — 수동 토글: 사용자가 본인이 온
 
     <footer>© <span id="year"></span> Heuksan. 모두가 즐기는 공정한 플레이.</footer>
   </main>
@@ -298,5 +306,6 @@
 
 </body>
 </html>
+
 
 
